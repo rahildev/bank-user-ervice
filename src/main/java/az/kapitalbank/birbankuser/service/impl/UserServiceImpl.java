@@ -1,12 +1,17 @@
 package az.kapitalbank.birbankuser.service.impl;
 
 import az.kapitalbank.birbankuser.domain.User;
+import az.kapitalbank.birbankuser.exception.UserNotFoundExeption;
 import az.kapitalbank.birbankuser.repository.UserRepo;
 import az.kapitalbank.birbankuser.service.UserService;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
+@Transactional
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -23,7 +28,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findUser(Long id) {
-        return repository.getById(id);
+        Optional<User> optioalUser = repository.findById(id);
+        if (!optioalUser.isPresent()) {
+            throw new UserNotFoundExeption("User with id " + id + " not found");
+        }
+        return optioalUser.get();
     }
 
     @Override
@@ -34,7 +43,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(Long id) {
-        repository.deleteById(id);
+        try {
+            repository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new UserNotFoundExeption("User with id " + id + " not found");
+        }
     }
 
     @Override
@@ -46,10 +59,5 @@ public class UserServiceImpl implements UserService {
         dbUser.setBirthDay(user.getBirthDay());
         dbUser.setBalance(user.getBalance());
         return repository.save(dbUser);
-    }
-
-    @Override
-    public User getUserByName(String name) {
-        return repository.findByName(name);
     }
 }

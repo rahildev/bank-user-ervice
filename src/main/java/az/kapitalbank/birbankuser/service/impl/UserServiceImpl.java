@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Transactional
@@ -23,31 +24,38 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAllUser() {
-        return repository.findAll();
+        List<User> all = repository.findAll();
+        if(all.isEmpty()) {
+            throw new NullPointerException("Base is empty");
+        }
+        return all;
     }
 
     @Override
     public User findUser(Long id) {
-        Optional<User> optioalUser = repository.findById(id);
-        if (!optioalUser.isPresent()) {
+        Optional<User> optionalUser = repository.findById(id);
+        if (!optionalUser.isPresent()) {
             throw new UserNotFoundExeption("User with id " + id + " not found");
         }
-        return optioalUser.get();
+        return optionalUser.get();
     }
 
     @Override
     public User createUser(User user) {
-        repository.save(user);
+        User saveUser = repository.save(user);
+        if (saveUser.getName().isEmpty() || saveUser.getSurname().isEmpty() || Objects.nonNull(saveUser.getBirthDay())) {
+            throw new NullPointerException("Please fill in the blanks");
+        }
         return user;
     }
 
     @Override
     public void deleteUser(Long id) {
-        try {
-            repository.deleteById(id);
-        } catch (EmptyResultDataAccessException e) {
-            throw new UserNotFoundExeption("User with id " + id + " not found");
-        }
+     try{
+         repository.deleteById(id);
+     }catch (EmptyResultDataAccessException e){
+         throw new UserNotFoundExeption("User with id "+id+" not found");
+     }
     }
 
     @Override
@@ -60,4 +68,5 @@ public class UserServiceImpl implements UserService {
         dbUser.setBalance(user.getBalance());
         return repository.save(dbUser);
     }
+
 }

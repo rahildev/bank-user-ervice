@@ -29,4 +29,9 @@ public class UserExceptionHandler extends ResponseEntityExceptionHandler {
                 request.getDescription(false));
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
     }
+    @ExceptionHandler(NullPointerException.class)
+    public final ResponseEntity<ErrorMessage> handleDbEmptyError(NullPointerException e, WebRequest request){
+        ErrorMessage message = new ErrorMessage(new Date(), e.getMessage(),request.getDescription(false));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+    }
 }
